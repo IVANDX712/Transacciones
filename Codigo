@@ -1,46 +1,22 @@
-CREATE DATABASE Transacciones;
-USE Transacciones;
 
-CREATE TABLE cuentas (
-  id INT PRIMARY KEY AUTO_INCREMENT,
-  nombre VARCHAR(50),
-  saldo DECIMAL(10,2)
+CREATE DATABASE banco;
+USE banco;
+
+CREATE TABLE IF NOT EXISTS cuentas (
+    numero_cuenta INT PRIMARY KEY,
+    saldo DECIMAL(10, 2) NOT NULL
 );
 
--- Insertar algunos datos de prueba en la tabla
-INSERT INTO cuentas (nombre, saldo) VALUES ('Cuenta A', 1000.00);
-INSERT INTO cuentas (nombre, saldo) VALUES ('Cuenta B', 500.00);
+INSERT INTO cuentas (numero_cuenta, saldo) VALUES (1001, 5000.00);
+INSERT INTO cuentas (numero_cuenta, saldo) VALUES (1002, 8000.00);
 
--- Crear el procedimiento almacenado
-DELIMITER //
-CREATE PROCEDURE transferir(IN desde INT, IN hacia INT, IN cantidad DECIMAL(10,2))
-BEGIN
-  DECLARE EXIT HANDLER FOR SQLEXCEPTION
-  BEGIN
-    -- Error al realizar la transacción, un rollback es necesario
-    ROLLBACK;
-    SELECT 'Error: ', SQLERRM;
-  END;
+SELECT * FROM cuentas;
 
-  -- Iniciar una transacción
-  START TRANSACTION;
+START TRANSACTION;
 
-  -- Actualizar el saldo de la cuenta desde donde se transferirá
-  UPDATE cuentas SET saldo = saldo - cantidad WHERE id = desde;
-  -- Actualizar el saldo de la cuenta hacia donde se transferirá
-  UPDATE cuentas SET saldo = saldo + cantidad WHERE id = hacia;
+UPDATE cuentas SET saldo = saldo - 1000.00 WHERE numero_cuenta = 1001;
+UPDATE cuentas SET saldo = saldo + 1000.00 WHERE numero_cuenta = 1002;
 
-  -- Realizar la transferencia completa
-  COMMIT;
+COMMIT;
 
-  -- Mostrar el mensaje de éxito
-  SELECT 'Transferencia completada exitosamente';
-
-END //
-DELIMITER ;
-
--- Ejecutar el procedimiento almacenado para transferir $200 de la cuenta A a la cuenta B
-CALL transferir(1, 2, 200.00);
-
--- Verificar los saldos después de la transferencia
 SELECT * FROM cuentas;
